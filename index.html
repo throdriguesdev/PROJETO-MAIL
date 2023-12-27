@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar E-mail</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Scripts para incorporar o TinyMCE -->
+    <style>
+        /* Estilos básicos para o modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // ... Seu código existente ...
+
+        // Função para enviar e-mails
+        function enviarEmails() {
+            const formData = new FormData();
+            const assunto = document.getElementById('assunto').value;
+            const corpo = document.getElementById('corpo').value;
+            const assinatura = document.getElementById('assinatura').value;
+            const userEmail = document.getElementById('userEmail').value;
+            const userPassword = document.getElementById('userPassword').value;
+        
+            // Adicione os valores ao FormData
+            formData.append('assunto', assunto);
+            formData.append('corpo', corpo);
+            formData.append('assinatura', assinatura);
+            formData.append('userEmail', userEmail);
+            formData.append('userPassword', userPassword);
+        
+            const emailsInputs = document.querySelectorAll('[name="emails[]"]');
+            const attachmentsInputs = document.querySelectorAll('[name="anexos[]"]');
+            
+            // Limpe a lista de e-mails no FormData
+            formData.delete('emails[]');
+        
+            emailsInputs.forEach((emailInput, index) => {
+                const emailValue = emailInput.value.trim();
+                if (emailValue !== "") {
+                    formData.append(`emails[${index}]`, emailValue);
+                }
+            });
+        
+            attachmentsInputs.forEach((attachmentInput, index) => {
+                if (attachmentInput.files[0]) {
+                    formData.append('anexos', attachmentInput.files[0]);
+                }
+            });
+        
+            // Envie o pedido POST para o servidor
+            fetch('http://localhost:3000/enviar_email', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+                // Adicione aqui qualquer lógica que deseje após o envio bem-sucedido
+            })
+            .catch(error => {
+                console.error('Erro ao enviar e-mail:', error);
+                // Adicione aqui qualquer lógica que deseje após o erro no envio
+            });
+        }
+    </script>
+    <button onclick="openLoginModal()">Login</button>
+    <div class="form-group">
+        <label for="userEmail">Seu E-mail:</label>
+        <input type="email" id="userEmail" name="userEmail" class="form-control" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="userPassword">Sua Senha:</label>
+        <input type="password" id="userPassword" name="userPassword" class="form-control" required>
+    </div>
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" required>
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required>
+            <button onclick="login()">Login</button>
+        </div>
+    </div>
+    <div class="container mt-5">
+        <h2>Formulário de Envio de E-mail</h2>
+        <form method="post" enctype="multipart/form-data">
+
+            <script>
+                document.querySelector('form').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    enviarEmails();
+                });
+            </script>
+            <div class="form-group">
+                <label for="assunto">Assunto:</label>
+                <input type="text" id="assunto" name="assunto" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="corpo">Corpo:</label>
+                <textarea id="corpo" name="corpo" class="form-control" required></textarea>
+</div>
+
+            <!-- Assinatura de E-mail com Imagem -->
+            <div class="form-group">
+                <label for="assinatura">Assinatura de E-mail (URL da imagem):</label>
+                <input type="url" id="assinatura" name="assinatura" class="form-control">
+            </div>
+
+            <div id="emails-container">
+                <div class="form-group">
+                    <label for="emails">E-mail:</label>
+                    <input type="email" name="emails[]" class="form-control" list="lista-emails" required>
+                    <datalist id="lista-emails"></datalist>
+                    <input type="file" name="anexos[]" accept=".xlsx" class="form-control" required>
+                    <button type="button" class="btn btn-danger btn-sm ml-2" onclick="removerEmail(this)">Remover</button>
+                </div>
+            </div>
+
+            <button type="button" onclick="adicionarEmail()" class="btn btn-primary">Adicionar E-mail</button>
+            <br>
+            <br>
+
+            <div class="form-group">
+                <label for="email-salvar">Salvar E-mail:</label>
+                <input type="email" id="email-salvar" class="form-control">
+            </div>
+            <button type="button" onclick="salvarEmail()" class="btn btn-success">Salvar E-mail</button>
+
+            <br>
+
+            <input type="button" value="Enviar E-mail" class="btn btn-success" onclick="enviarEmails()">
+        </form>
+    </div>
+
+    <script> 
+        // Função para abrir o modal
+        function openLoginModal() {
+            document.getElementById('loginModal').style.display = 'block';
+        }
+
+        // Função para fechar o modal
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        // Função para processar o login (substitua isso com lógica de autenticação real)
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Aqui você pode fazer algo com o email e senha, como enviá-los para o servidor
+            // e obter um token de autenticação ou realizar a autenticação de outra maneira.
+
+            // Feche o modal após o login
+            closeLoginModal();
+        }
+    </script>
+
+    <script>
+        function loadEmails() {
+            fetch('http://localhost:3000/emails')
+                .then(response => response.json())
+                .then(emails => {
+                    const emailContainer = document.getElementById('emails-container');
+                    emails.forEach(email => {
+                        const emailInput = document.createElement('input');
+                        emailInput.type = 'email';
+                        emailInput.name = 'emails[]';
+                        emailInput.classList.add('form-control');
+                        emailInput.value = email;
+                        emailContainer.appendChild(emailInput);
+                    });
+                })
+                .catch(error => console.error('Error loading emails:', error));
+        }
+    </script>
+
+    <script>
+        var listaEmails = [];
+function adicionarEmail() {
+    var container = document.getElementById("emails-container");
+    var novoEmail = document.createElement("div");
+    novoEmail.className = "form-group";
+    novoEmail.innerHTML = '<label for="emails">E-mail:</label>' +
+                          '<input type="email" name="emails[]" class="form-control" list="lista-emails" required>' +
+                          '<datalist id="lista-emails"></datalist>' +
+                          '<input type="file" name="anexos[]" accept=".xlsx" class="form-control" required>' +
+                          '<button type="button" class="btn btn-danger btn-sm ml-2" onclick="removerEmail(this)">Remover</button>';
+    container.appendChild(novoEmail);
+
+    // Agora, selecione o campo de e-mail dentro do novoEmail
+    var novoEmailInput = novoEmail.querySelector('[name="emails[]"]');
+    var novoEmailValue = novoEmailInput.value;
+
+    if (novoEmailValue.trim() !== "" && !listaEmails.includes(novoEmailValue)) {
+        listaEmails.push(novoEmailValue);
+        atualizarListaEmails();
+    }
+}
+ 
+        function removerEmail(botaoRemover) {
+            var container = document.getElementById("emails-container");
+            var campoEmail = botaoRemover.parentNode;
+            container.removeChild(campoEmail);
+            var emailRemovido = campoEmail.querySelector('[name="emails[]"]').value;
+            listaEmails = listaEmails.filter(function(email) {
+                return email !== emailRemovido;
+            });
+            atualizarListaEmails();
+        }
+        
+
+        function salvarEmail() {
+            var email = document.getElementById("email-salvar").value;
+            if (email.trim() !== "") {
+                listaEmails.push(email);
+                atualizarListaEmails();
+                document.getElementById("email-salvar").value = "";
+            }
+        }
+
+        function atualizarListaEmails() {
+            var emailDatalist = document.getElementById("lista-emails");
+            emailDatalist.innerHTML = "";
+            listaEmails.forEach(function (email) {
+                var option = document.createElement("option");
+                option.value = email;
+                emailDatalist.appendChild(option);
+            });
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Carregar a lista de e-mails ao carregar a página
+            document.querySelector('input[type="button"]').addEventListener('click', enviarEmails);
+            carregarListaEmails();
+
+            // Restante do seu código existente...
+            // Certifique-se de que a função carregarListaEmails é chamada conforme necessário.
+        });
+
+        // Função para carregar a lista de e-mails nos campos
+        function carregarListaEmails() {
+            var listaContainer = document.getElementById("lista-emails");
+            var emailsContainer = document.getElementById("emails-container");
+
+            // Obtenha a lista de e-mails do servidor ou de onde você preferir
+            fetch('/emails') // Assumindo que a rota '/emails' retorna a lista de e-mails
+                .then(response => response.json())
+                .then(data => {
+                    // Adicione os e-mails ao campo de lista e crie os campos de e-mail
+                    Object.values(data).forEach(function (email) {
+                        var option = document.createElement("option");
+                        option.value = email;
+                        listaContainer.appendChild(option);
+
+                        // Crie os campos de e-mail no formulário
+                        var novoEmail = document.createElement("div");
+                        novoEmail.className = "form-group";
+                        novoEmail.innerHTML = '<label for="emails">E-mail:</label>' +
+                                              '<input type="email" name="emails[]" class="form-control" list="lista-emails" value="' + email + '" required>' +
+                                              '<datalist id="lista-emails"></datalist>' +
+                                              '<input type="file" name="anexos[]" accept=".xlsx" class="form-control" required>' +
+                                              '<button type="button" class="btn btn-danger btn-sm ml-2" onclick="removerEmail(this)">Remover</button>';
+                        emailsContainer.appendChild(novoEmail);
+                    });
+                })
+                .catch(error => console.error('Error loading emails:', error));
+        }
+    </script>
+</body>
+</html>
